@@ -20,7 +20,14 @@ app.use(logger('dev'));
 app.use(session({
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
-  secret: 'keyboard cat',
+  secret: process.env.SESSION_SECRET || (() => {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('ERROR: SESSION_SECRET environment variable must be set in production');
+      process.exit(1);
+    }
+    console.warn('WARNING: Using default session secret. This is only acceptable for development.');
+    return 'dev_session_secret_' + Math.random().toString(36).slice(2);
+  })(),
   store: new RedisStore
 }));
 
